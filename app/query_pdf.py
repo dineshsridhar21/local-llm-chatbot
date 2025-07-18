@@ -2,15 +2,14 @@
 
 from app.vector_store import get_chroma_client
 from sentence_transformers import SentenceTransformer
-import numpy as np
+import subprocess
 
-# Load embedding model (same as used in embedder.py)
+# Load embedding model (same as in embed_pdf.py)
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Connect to ChromaDB
 db = get_chroma_client()
-collection = db.get_or_create_collection(name="medical_rag")
-
+collection = db.get_or_create_collection(name="pdf_documents")
 
 def retrieve_similar_chunks(query, top_k=3):
     # Embed the user query
@@ -22,14 +21,37 @@ def retrieve_similar_chunks(query, top_k=3):
         n_results=top_k
     )
 
-    # Extract texts
-    return results["documents"][0]
+    return results["documents"][0]  # top-k chunks
 
-# Example usage
+def generate_with_ollama(prompt):
+    result = subprocess.run(
+        ["ollama", "run", "mistral"],
+        input=prompt.encode(),
+        stdout=subprocess.PIPE
+    )
+    return result.stdout.decode()
+
+def format_prompt(context_chunks, query):
+    context = "\n\n".join(context_chunks)
+    prompt = f"""Answer the question using the context below.
+
+Context:
+{context}
+
+Question: {query}
+
+Answer:"""
+    return prompt
+
 if __name__ == "__main__":
     user_query = input("Enter your query: ")
-    similar_chunks = retrieve_similar_chunks(user_query)
+    chunks = retrieve_similar_chunks(user_query)
+    prompt = format_prompt(chunks, user_query)
+    response = generate_with_ollama(prompt)
 
-    print("\nTop Matching Chunks:\n")
-    for i, chunk in enumerate(similar_chunks, 1):
-        print(f"{i}. {chunk}\n")
+    print("\n🔍 Prompt sent to LLM:\n")
+    print(prompt)
+    
+    print("\n🤖 LLM Answer:\n")
+    print(response)
+
