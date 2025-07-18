@@ -11,3 +11,8 @@ def store_embeddings(chunks, embeddings):
             embeddings=[emb.tolist()],
             ids=[f"chunk_{i}"]
         )
+
+def get_chroma_client():
+    client = chromadb.PersistentClient(path="chroma_db")
+    return client
+
