@@ -43,15 +43,16 @@ Question: {query}
 Answer:"""
     return prompt
 
+# This is what Streamlit will call
+def ask_question(query):
+    chunks = retrieve_similar_chunks(query)
+    prompt = format_prompt(chunks, query)
+    response = generate_with_ollama(prompt)
+    return response.strip()
+
+# Keep CLI functionality if run directly
 if __name__ == "__main__":
     user_query = input("Enter your query: ")
-    chunks = retrieve_similar_chunks(user_query)
-    prompt = format_prompt(chunks, user_query)
-    response = generate_with_ollama(prompt)
-
-    print("\n🔍 Prompt sent to LLM:\n")
-    print(prompt)
-    
-    print("\n🤖 LLM Answer:\n")
-    print(response)
+    print("\n LLM Answer:\n")
+    print(ask_question(user_query))
 

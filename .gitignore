@@ -1,0 +1,10 @@
+env/
+__pycache__/
+*.pyc
+*.pkl
+*.log
+*.db
+*.csv
+.idea/
+.vscode/
+streamlit_app/.streamlit/
